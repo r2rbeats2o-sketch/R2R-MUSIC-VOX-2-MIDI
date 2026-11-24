@@ -2,7 +2,7 @@ name: Windows VST3 Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/dj-r2r-optical-tube-compressor ]
   workflow_dispatch:
 
 permissions:
@@ -23,12 +23,19 @@ jobs:
       - name: Configure
         run: cmake -S . -B build -A x64
 
-      - name: Build VST3 and Standalone
-        run: cmake --build build --config Release --target R2RMusicVox2Midi_VST3 R2RMusicVox2Midi_Standalone
+      - name: Build both VST3 and Standalone plugins
+        run: cmake --build build --config Release --target R2RMusicVox2Midi_VST3 R2RMusicVox2Midi_Standalone R2ROpticalTubeCompressor_VST3 R2ROpticalTubeCompressor_Standalone
 
-      - name: Upload VST3 bundle
+      - name: Upload VOX 2 MIDI VST3
         uses: actions/upload-artifact@v4
         with:
           name: R2R-MUSIC-VOX-2-MIDI-Windows-x64
           path: build/R2RMusicVox2Midi_artefacts/Release/VST3/
+          if-no-files-found: error
+
+      - name: Upload Optical Tube Compressor VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: DJ-R2R-Optical-Tube-Compressor-Windows-x64
+          path: build/R2ROpticalTubeCompressor_artefacts/Release/VST3/
           if-no-files-found: error
