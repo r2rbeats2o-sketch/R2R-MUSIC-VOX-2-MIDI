@@ -29,3 +29,24 @@ JUCE is fetched separately under its own license. Review JUCE licensing terms be
 
 ## Build status
 The MIDI writer uses JUCE's `MidiFile::writeTo` API.
+
+
+## DJ R2R Optical Tube Compressor (separate plugin target)
+
+The R2ROpticalTubeCompressor target adds a separate Windows VST3/Standalone compressor while preserving the VOX 2 MIDI target and its source files.
+
+- Brushed-metal style DJ R2R front panel and custom rotary controls.
+- Vintage-style animated VU meter.
+- Peak Reduction, Output Gain, Tube Warmth, Compress/Limit mode and Power controls.
+- Audio compression, output gain and a simple tube-style saturation stage.
+- Parameter state is saved and restored by the host.
+
+Build only this plugin with:
+
+    cmake --build build --config Release --target R2ROpticalTubeCompressor_VST3
+
+The bundle is generated under:
+
+    build/R2ROpticalTubeCompressor_artefacts/Release/VST3/
+
+The compressor DSP is a functional starting point; the interface is custom drawn in JUCE. It has not yet been compiled or validated in a DAW in this branch.
