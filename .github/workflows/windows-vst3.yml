@@ -41,3 +41,5 @@ jobs:
           name: DJ-R2R-OPTICAL-TUBE-COMPRESSOR-Windows-x64
           path: build/R2ROpticalTubeCompressor_artefacts/Release/VST3/
           if-no-files-found: error
+
+# Rebuild for the black-cyan-neon-red Optical Tube UI update.
