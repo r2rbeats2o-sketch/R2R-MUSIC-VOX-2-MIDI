@@ -29,3 +29,21 @@ JUCE is fetched separately under its own license. Review JUCE licensing terms be
 
 ## Build status
 The MIDI writer uses JUCE's `MidiFile::writeTo` API.
+
+
+## DJ R2R Optical Tube Compressor (new VST3 target)
+The repository now also contains a separate **DJ R2R Optical Tube Compressor** VST3/Standalone target. It does not replace the VOX 2 MIDI target.
+
+### Controls
+- Peak Reduction: compression threshold/amount on a 0–50 scale.
+- Output Gain: output trim, approximately -6 to +6 dB.
+- Tube Warmth: adjustable soft saturation.
+- COMPRESS / LIMIT: selects 4:1 compression or high-ratio limiting.
+- Power: bypass.
+- Vintage-style VU display: gain-reduction indication.
+
+### Build
+`cmake -S . -B build -A x64`
+`cmake --build build --config Release --target R2ROpticalTubeCompressor_VST3`
+
+The interface is an original R2R-branded interpretation of the supplied front-panel concept. The DSP is a practical starter compressor/limiter with envelope-based gain reduction and tube-style saturation, not a component-level analog circuit emulation. Validate levels and behavior in your DAW before release.
