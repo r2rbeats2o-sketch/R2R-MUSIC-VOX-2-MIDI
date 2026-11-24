@@ -118,9 +118,7 @@ bool R2RMusicVox2MidiAudioProcessor::convertAudioFileToMidi(const juce::File& in
     output.getParentDirectory().createDirectory();
     auto stream = output.createOutputStream();
     if (!stream) return false;
-    juce::FileOutputStream* raw = stream.get();
-    juce::MidiFile::StandardMidiFileWriter writer(midiFile, 960);
-    return writer.writeTo(*raw);
+    return midiFile.writeTo(*stream, 1);
 }
 
 juce::AudioProcessorEditor* R2RMusicVox2MidiAudioProcessor::createEditor()
