@@ -1,90 +1,20 @@
 #include "PluginEditor.h"
-
-namespace {
-const juce::Colour bg(0xff090b13), panel(0xff141827), violet(0xffa855f7),
-                   cyan(0xff22d3ee), lime(0xffc6f43a), muted(0xff8992a8);
+namespace { const juce::Colour bg(0xff090811), panel(0xff171326), pink(0xffff2b9d), lime(0xffd5ff32), purple(0xff9a55ff), muted(0xff938aa8); }
+R2RMusicVox2MidiAudioProcessorEditor::R2RMusicVox2MidiAudioProcessorEditor(R2RMusicVox2MidiAudioProcessor& p):AudioProcessorEditor(&p),processor(p){
+ setSize(900,640); title.setText("R2R MUSIC  /  VOX 2 MIDI",juce::dontSendNotification); title.setFont(juce::Font(juce::FontOptions(26,juce::Font::bold))); title.setColour(juce::Label::textColourId,juce::Colours::white); addAndMakeVisible(title);
+ status.setText("DJ R2R  •  VOCAL TRANSCRIPTION STUDIO  •  READY",juce::dontSendNotification); status.setColour(juce::Label::textColourId,lime); addAndMakeVisible(status);
+ for(auto* b:{&load,&analyseButton,&exportButton}){b->setColour(juce::TextButton::buttonColourId,panel);b->setColour(juce::TextButton::textColourOffId,juce::Colours::white);addAndMakeVisible(b);}
+ load.onClick=[this]{importAudio();}; analyseButton.onClick=[this]{analyse();};
+ exportButton.onClick=[this]{if(!audioFile.existsAsFile()){status.setText("IMPORT A VOCAL FILE FIRST",juce::dontSendNotification);return;} chooser=std::make_unique<juce::FileChooser>("Export MIDI",audioFile.withFileExtension(".mid"),"*.mid"); chooser->launchAsync(juce::FileBrowserComponent::saveMode|juce::FileBrowserComponent::canSelectFiles,[this](const juce::FileChooser& f){auto out=f.getResult().withFileExtension(".mid");if(out==juce::File{})return;status.setText(processor.convertAudioFileToMidi(audioFile,out)?"MIDI EXPORTED  •  "+out.getFileName():"EXPORT FAILED",juce::dontSendNotification);});};
+ chord.addItem("MELODY ONLY",1); chord.addItem("MAJOR",2); chord.addItem("MINOR",3); chord.addItem("DIMINISHED",4); chord.addItem("AUGMENTED",5); chord.addItem("SUS2",6); chord.addItem("SUS4",7); chord.addItem("DOMINANT 7",8); chord.addItem("MAJOR 7",9); chord.addItem("MINOR 7",10); chord.setSelectedId(1); chord.setColour(juce::ComboBox::backgroundColourId,panel); chord.setColour(juce::ComboBox::textColourId,juce::Colours::white); addAndMakeVisible(chord);
+ octave.setRange(-2,2,1); octave.setValue(0); octave.setSliderStyle(juce::Slider::IncDecButtons); octave.setTextBoxStyle(juce::Slider::TextBoxBelow,false,55,22); addAndMakeVisible(octave);
+ sensitivity.setRange(.05,.95,.01); sensitivity.setValue(.35); sensitivity.setTextBoxStyle(juce::Slider::TextBoxBelow,false,65,22); sensitivity.setColour(juce::Slider::trackColourId,purple); sensitivity.onValueChange=[this]{processor.setSensitivity(float(sensitivity.getValue()));}; addAndMakeVisible(sensitivity);
+ chordLabel.setText("CHORD TYPE",juce::dontSendNotification); octaveLabel.setText("OCTAVE SHIFT",juce::dontSendNotification); sensitivityLabel.setText("PITCH CONFIDENCE",juce::dontSendNotification);
+ for(auto* l:{&chordLabel,&octaveLabel,&sensitivityLabel}){l->setColour(juce::Label::textColourId,muted);addAndMakeVisible(l);}
 }
-R2RMusicVox2MidiAudioProcessorEditor::R2RMusicVox2MidiAudioProcessorEditor(R2RMusicVox2MidiAudioProcessor& p)
- : AudioProcessorEditor(&p), processor(p)
-{
-    setSize(760, 500);
-    titleLabel.setText("R2R MUSIC  /  VOX 2 MIDI", juce::dontSendNotification);
-    titleLabel.setFont(juce::Font(juce::FontOptions(25.0f, juce::Font::bold)));
-    titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-    addAndMakeVisible(titleLabel);
-    statusLabel.setText("READY  •  MONOPHONIC PITCH TRACKING", juce::dontSendNotification);
-    statusLabel.setColour(juce::Label::textColourId, lime);
-    addAndMakeVisible(statusLabel);
-    sensitivityLabel.setText("PITCH CONFIDENCE", juce::dontSendNotification);
-    sensitivityLabel.setColour(juce::Label::textColourId, muted);
-    addAndMakeVisible(sensitivityLabel);
-    sensitivitySlider.setRange(0.05, 0.95, 0.01);
-    sensitivitySlider.setValue(0.35);
-    sensitivitySlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 70, 26);
-    sensitivitySlider.setColour(juce::Slider::trackColourId, violet);
-    sensitivitySlider.setColour(juce::Slider::thumbColourId, cyan);
-    sensitivitySlider.onValueChange = [this] { processor.setSensitivity(float(sensitivitySlider.getValue())); };
-    addAndMakeVisible(sensitivitySlider);
-
-    for (auto* b : { &loadButton, &exportButton }) {
-        b->setColour(juce::TextButton::buttonColourId, panel);
-        b->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
-        b->setColour(juce::TextButton::buttonOnColourId, violet);
-        addAndMakeVisible(b);
-    }
-    loadButton.onClick = [this] {
-        chooser = std::make_unique<juce::FileChooser>("Choose a vocal or audio file", juce::File{}, "*.wav;*.aiff;*.aif;*.flac;*.mp3");
-        chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-            [this](const juce::FileChooser& fc) {
-                loadedFile = fc.getResult();
-                if (loadedFile.existsAsFile())
-                    statusLabel.setText("LOADED  •  " + loadedFile.getFileName(), juce::dontSendNotification);
-            });
-    };
-    exportButton.onClick = [this] {
-        if (!loadedFile.existsAsFile()) {
-            statusLabel.setText("LOAD AN AUDIO FILE FIRST", juce::dontSendNotification);
-            return;
-        }
-        chooser = std::make_unique<juce::FileChooser>("Save MIDI file", loadedFile.withFileExtension(".mid"), "*.mid");
-        chooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-            [this](const juce::FileChooser& fc) {
-                auto destination = fc.getResult().withFileExtension(".mid");
-                if (destination == juce::File{}) return;
-                const bool ok = processor.convertAudioFileToMidi(loadedFile, destination);
-                statusLabel.setText(ok ? "MIDI EXPORTED  •  " + destination.getFileName()
-                                        : "CONVERSION FAILED  •  CHECK AUDIO FORMAT",
-                                    juce::dontSendNotification);
-            });
-    };
-}
-void R2RMusicVox2MidiAudioProcessorEditor::paint(juce::Graphics& g)
-{
-    g.fillAll(bg);
-    g.setColour(panel); g.fillRoundedRectangle(24, 90, 712, 300, 18.0f);
-    g.setColour(violet); g.fillRoundedRectangle(24, 90, 6, 300, 3.0f);
-    g.setColour(cyan); g.drawRoundedRectangle(24, 90, 712, 300, 18.0f, 1.0f);
-    g.setColour(lime); g.setFont(juce::Font(juce::FontOptions(12.0f, juce::Font::bold)));
-    g.drawText("DJ R2R  •  VOCAL INTELLIGENCE", 48, 112, 400, 22, juce::Justification::left);
-    g.setColour(muted); g.setFont(juce::Font(juce::FontOptions(13.0f)));
-    g.drawText("REAL-TIME MIDI  /  AUDIO FILE CONVERSION", 48, 150, 620, 24, juce::Justification::left);
-    for (int i = 0; i < 54; ++i) {
-        const float x = 50.0f + i * 12.0f;
-        const float h = 18.0f + float((i * 37) % 53);
-        g.setColour(i % 3 == 0 ? cyan : (i % 3 == 1 ? lime : violet));
-        g.drawRoundedRectangle(x, 215.0f - h * 0.5f, 4.0f, h, 2.0f, 0.0f);
-    }
-    g.setColour(muted);
-    g.drawText("Monophonic pitch extraction • MIDI note events • WAV / AIFF / FLAC / MP3 input",
-               48, 330, 650, 24, juce::Justification::left);
-    g.setColour(violet); g.fillRoundedRectangle(24, 420, 712, 1, 1.0f);
-}
-void R2RMusicVox2MidiAudioProcessorEditor::resized()
-{
-    titleLabel.setBounds(28, 20, 600, 42);
-    statusLabel.setBounds(30, 58, 690, 24);
-    loadButton.setBounds(48, 270, 190, 48);
-    exportButton.setBounds(252, 270, 190, 48);
-    sensitivityLabel.setBounds(48, 445, 160, 24);
-    sensitivitySlider.setBounds(210, 440, 330, 34);
-}
+void R2RMusicVox2MidiAudioProcessorEditor::importAudio(){chooser=std::make_unique<juce::FileChooser>("Choose vocal/audio",juce::File{},"*.wav;*.aiff;*.aif;*.flac;*.mp3");chooser->launchAsync(juce::FileBrowserComponent::openMode|juce::FileBrowserComponent::canSelectFiles,[this](const juce::FileChooser& f){audioFile=f.getResult();if(!audioFile.existsAsFile())return;juce::AudioFormatManager fm;fm.registerBasicFormats();std::unique_ptr<juce::AudioFormatReader> r(fm.createReaderFor(audioFile));if(!r){status.setText("UNSUPPORTED AUDIO FILE",juce::dontSendNotification);return;}int n=int(juce::jmin<juce::int64>(r->lengthInSamples,12000000));waveform.setSize(1,n);r->read(&waveform,0,n,0,true,true);notes.clear();status.setText("LOADED  •  "+audioFile.getFileName(),juce::dontSendNotification);repaint();});}
+void R2RMusicVox2MidiAudioProcessorEditor::analyse(){if(!audioFile.existsAsFile()){status.setText("IMPORT A VOCAL FILE FIRST",juce::dontSendNotification);return;}notes.clear();juce::AudioFormatManager fm;fm.registerBasicFormats();std::unique_ptr<juce::AudioFormatReader> r(fm.createReaderFor(audioFile));if(!r)return;constexpr int n=2048;juce::AudioBuffer<float>b(1,n);for(juce::int64 pos=0;pos<r->lengthInSamples;pos+=n*3){int count=int(juce::jmin<juce::int64>(n,r->lengthInSamples-pos));b.clear();r->read(&b,0,count,pos,true,false);int crossings=0;auto*x=b.getReadPointer(0);for(int i=1;i<count;i++)if(x[i-1]<=0&&x[i]>0)++crossings;double hz=double(crossings)*r->sampleRate/juce::jmax(1,count);if(hz>55&&hz<1000)notes.add(juce::jlimit(0,127,int(std::round(69+12*std::log2(hz/440.0)))));}status.setText("ANALYSIS PREVIEW  •  "+juce::String(notes.size())+" NOTE WINDOWS",juce::dontSendNotification);repaint();}
+void R2RMusicVox2MidiAudioProcessorEditor::paint(juce::Graphics&g){g.fillAll(bg);g.setColour(pink);g.fillRoundedRectangle(22,20,7,48,3);g.setColour(panel);g.fillRoundedRectangle(22,100,856,245,14);g.fillRoundedRectangle(22,360,856,150,14);g.fillRoundedRectangle(22,525,856,95,14);g.setColour(lime);g.setFont(juce::Font(juce::FontOptions(11,juce::Font::bold)));g.drawText("VOCAL WAVEFORM",40,110,220,20,juce::Justification::left);g.setColour(purple);g.drawText("MIDI NOTE PREVIEW",40,368,220,20,juce::Justification::left);
+ juce::Rectangle<int>a(38,138,824,165);g.setColour(panel.darker(.2f));g.fillRoundedRectangle(a.toFloat(),8);if(waveform.getNumSamples()>0){auto*d=waveform.getReadPointer(0);int total=waveform.getNumSamples();juce::Path path;float mid=float(a.getCentreY()),amp=a.getHeight()*.43f;for(int x=0;x<a.getWidth()-20;x++){int s=x*total/(a.getWidth()-20),e=juce::jmax(s+1,(x+1)*total/(a.getWidth()-20));float peak=0;for(int j=s;j<juce::jmin(e,total);j++)peak=juce::jmax(peak,std::abs(d[j]));float px=float(a.getX()+10+x);path.startNewSubPath(px,mid-peak*amp);path.lineTo(px,mid+peak*amp);}g.setColour(lime);g.strokePath(path,juce::PathStrokeType(1.2f));}else{g.setColour(muted);g.drawText("IMPORT VOCAL / AUDIO FILE",a,juce::Justification::centred);}
+ juce::Rectangle<int>n(38,390,824,100);g.setColour(panel.darker(.2f));g.fillRoundedRectangle(n.toFloat(),8);for(int i=0;i<5;i++){g.setColour(muted.withAlpha(.25f));g.drawHorizontalLine(n.getY()+12+i*18,float(n.getX()+8),float(n.getRight()-8));}if(notes.isEmpty()){g.setColour(muted);g.drawText("ANALYSE NOTES TO PREVIEW THE MELODY",n,juce::Justification::centred);}else for(int i=0;i<notes.size();i++){float x=float(n.getX()+10+i*(n.getWidth()-24)/juce::jmax(1,notes.size()));float y=float(n.getBottom()-12-(notes[i]%24)*3.0f);g.setColour(i%2?pink:lime);g.fillRoundedRectangle(x,y,11,6,2);}}
+void R2RMusicVox2MidiAudioProcessorEditor::resized(){title.setBounds(42,20,420,40);status.setBounds(470,60,405,22);load.setBounds(40,305,180,30);analyseButton.setBounds(235,305,180,30);exportButton.setBounds(430,305,180,30);chordLabel.setBounds(42,545,120,18);chord.setBounds(42,566,190,32);octaveLabel.setBounds(270,545,120,18);octave.setBounds(270,562,120,44);sensitivityLabel.setBounds(470,545,180,18);sensitivity.setBounds(470,562,190,44);}
