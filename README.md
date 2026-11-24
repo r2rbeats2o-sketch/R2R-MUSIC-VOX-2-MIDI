@@ -25,3 +25,7 @@ This is an early monophonic pitch-tracking prototype, not a polyphonic vocal tra
 
 ## License
 JUCE is fetched separately under its own license. Review JUCE licensing terms before distributing binaries commercially.
+
+
+## Build status
+The MIDI writer uses JUCE's `MidiFile::writeTo` API.
