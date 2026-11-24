@@ -14,12 +14,13 @@ private:
     public:
         void drawRotarySlider(juce::Graphics&, int, int, int, int, float, float, float, juce::Slider&) override;
     };
-    class VUMeter final : public juce::Component
+    class VUMeter final : public juce::Component, private juce::Timer
     {
     public:
-        explicit VUMeter(OpticalTubeProcessor& p) : processor(p) {}
+        explicit VUMeter(OpticalTubeProcessor& p) : processor(p) { startTimerHz(30); }
         void paint(juce::Graphics&) override;
     private:
+        void timerCallback() override { repaint(); }
         OpticalTubeProcessor& processor;
     };
     OpticalTubeProcessor& processor;
