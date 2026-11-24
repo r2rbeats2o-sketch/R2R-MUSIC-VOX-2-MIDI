@@ -3,8 +3,9 @@ using namespace juce;
 
 namespace
 {
-    const Colour bg(0xff080d16), panel(0xff101a29), cyan(0xff00eaff),
-                 red(0xffff315b), muted(0xff91a8bd), amber(0xffffc45e);
+    const Colour bg(0xff090817), panel(0xff15112b), cyan(0xff37f5ff),
+                 red(0xffff3b81), muted(0xffa6a0c8), amber(0xffc5ff45);
+    const Colour violet(0xffa855ff), lime(0xffc5ff45);
 }
 
 OpticalTubeEditor::OpticalTubeEditor(OpticalTubeProcessor& p)
@@ -69,9 +70,22 @@ void OpticalTubeEditor::NeonLookAndFeel::drawRotarySlider(Graphics& g, int x, in
     const float angle = start + pos * (end - start);
     const Rectangle<float> dial(cx-r, cy-r, d, d);
 
-    g.setColour(Colour(0x9900dfff));
+    // Graduated scale: 41 fine ticks with a longer mark every fifth step.
+    for (int i = 0; i <= 40; ++i)
+    {
+        const float a = start + (end - start) * (float)i / 40.0f;
+        const bool major = (i % 5 == 0);
+        const float outer = r + 10.0f;
+        const float innerTick = outer - (major ? 11.0f : 5.0f);
+        g.setColour(major ? lime : Colour(0xff64718b));
+        g.drawLine(cx + std::cos(a) * innerTick, cy + std::sin(a) * innerTick,
+                   cx + std::cos(a) * outer, cy + std::sin(a) * outer,
+                   major ? 2.0f : 1.0f);
+    }
+
+    g.setColour(Colour(0x997c35ff));
     g.drawEllipse(dial.expanded(5.0f), 2.0f);
-    g.setColour(Colour(0x3300eaff));
+    g.setColour(Colour(0x557c35ff));
     g.drawEllipse(dial.expanded(9.0f), 1.0f);
 
     g.setColour(Colour(0xff02050a));
@@ -91,12 +105,12 @@ void OpticalTubeEditor::NeonLookAndFeel::drawRotarySlider(Graphics& g, int x, in
 
     Path arc;
     arc.addCentredArc(cx, cy, r+5.0f, r+5.0f, 0.0f, start, angle, true);
-    g.setColour(cyan);
+    g.setColour(violet);
     g.strokePath(arc, PathStrokeType(3.2f, PathStrokeType::curved, PathStrokeType::rounded));
 
     Path pointer;
     pointer.addRoundedRectangle(-2.0f, -r*0.83f, 4.0f, r*0.30f, 2.0f);
-    g.setColour(red);
+    g.setColour(lime);
     g.fillPath(pointer, AffineTransform::rotation(angle).translated(cx, cy));
     g.setColour(Colour(0xffd6faff));
     g.fillEllipse(cx-3.0f, cy-3.0f, 6.0f, 6.0f);
@@ -107,16 +121,16 @@ void OpticalTubeEditor::VUMeter::paint(Graphics& g)
     auto b = getLocalBounds().toFloat();
     g.setColour(Colour(0xff02060c));
     g.fillRoundedRectangle(b, 10.0f);
-    g.setColour(Colour(0xff00cfe8));
+    g.setColour(violet);
     g.drawRoundedRectangle(b.reduced(1.5f), 10.0f, 2.0f);
-    g.setColour(Colour(0x3300dfff));
+    g.setColour(Colour(0x447c35ff));
     g.drawRoundedRectangle(b.expanded(3.0f), 12.0f, 2.0f);
 
     auto face = b.reduced(12.0f);
-    g.setGradientFill(ColourGradient(Colour(0xffffd987), face.getX(), face.getY(),
-                                     Colour(0xff9c4c16), face.getX(), face.getBottom(), false));
+    g.setGradientFill(ColourGradient(Colour(0xfff5e8ff), face.getX(), face.getY(),
+                                     Colour(0xff6744a8), face.getX(), face.getBottom(), false));
     g.fillRoundedRectangle(face, 5.0f);
-    g.setColour(Colour(0xff5b2d0c));
+    g.setColour(Colour(0xff34204f));
     g.drawRoundedRectangle(face, 5.0f, 1.5f);
 
     const float cx = face.getCentreX(), cy = face.getBottom()-23.0f;
@@ -125,7 +139,7 @@ void OpticalTubeEditor::VUMeter::paint(Graphics& g)
     {
         const float a = MathConstants<float>::pi*(1.12f+0.76f*i/23.0f);
         const float r1 = radius-(i%2==0 ? 14.0f : 8.0f);
-        g.setColour(i > 17 ? Colour(0xffbd1f20) : Colour(0xff25180e));
+        g.setColour(i > 17 ? Colour(0xffdb267c) : Colour(0xff30254a));
         g.drawLine(cx+std::cos(a)*r1, cy+std::sin(a)*r1,
                    cx+std::cos(a)*radius, cy+std::sin(a)*radius, i%2==0 ? 2.0f : 1.0f);
         if (i%3==0)
@@ -155,26 +169,26 @@ void OpticalTubeEditor::paint(Graphics& g)
                                      Colour(0xff070b13), 0.0f, (float)getHeight(), false));
     g.fillRoundedRectangle(bounds.reduced(5.0f), 13.0f);
 
-    g.setColour(Colour(0xff00dff5));
+    g.setColour(violet);
     g.drawRoundedRectangle(bounds.reduced(5.0f), 13.0f, 2.0f);
-    g.setColour(Colour(0x2200eaff));
+    g.setColour(Colour(0x227c35ff));
     g.drawRoundedRectangle(bounds.reduced(10.0f), 10.0f, 1.0f);
 
     // Dark inset control deck and subtle neon divider.
     g.setColour(panel);
     g.fillRoundedRectangle(20.0f, 105.0f, 1060.0f, 365.0f, 12.0f);
-    g.setColour(Colour(0xff1c5268));
+    g.setColour(Colour(0xff553b80));
     g.drawRoundedRectangle(20.0f, 105.0f, 1060.0f, 365.0f, 12.0f, 1.0f);
 
-    g.setColour(cyan.withAlpha(0.55f));
+    g.setColour(violet.withAlpha(0.70f));
     g.drawLine(42.0f, 92.0f, 1058.0f, 92.0f, 1.5f);
-    g.setColour(red);
+    g.setColour(lime);
     g.drawLine(42.0f, 515.0f, 1058.0f, 515.0f, 2.0f);
 
     // Screw heads and lower black equipment rail.
     g.setColour(Colour(0xff03070d));
     g.fillRoundedRectangle(10.0f, 520.0f, 1080.0f, 38.0f, 6.0f);
-    g.setColour(Colour(0xff39546a));
+    g.setColour(Colour(0xff513d72));
     for (auto p : { Point<float>(28,28), Point<float>(1072,28),
                     Point<float>(28,492), Point<float>(1072,492) })
     {
@@ -185,10 +199,10 @@ void OpticalTubeEditor::paint(Graphics& g)
         g.setColour(Colour(0xff39546a));
     }
 
-    g.setColour(Colour(0xff718da4));
+    g.setColour(Colour(0xffa6a0c8));
     g.setFont(Font(10.0f, Font::bold));
     g.drawText("R2R  /  ANALOG-INSPIRED DYNAMICS", 34, 535, 350, 14, Justification::centredLeft);
-    g.setColour(cyan);
+    g.setColour(lime);
     g.drawText("DARK NEON SERIES  //  VST3", 760, 535, 300, 14, Justification::centredRight);
 }
 
