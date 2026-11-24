@@ -122,7 +122,7 @@ juce::AudioProcessorEditor* R2ROpticalTubeCompressorAudioProcessor::createEditor
     return new R2ROpticalTubeCompressorAudioProcessorEditor(*this);
 }
 
-juce::AudioProcessor* JUCE_CALLTYPE createOpticalTubeCompressorPluginFilter()
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new R2ROpticalTubeCompressorAudioProcessor();
 }
