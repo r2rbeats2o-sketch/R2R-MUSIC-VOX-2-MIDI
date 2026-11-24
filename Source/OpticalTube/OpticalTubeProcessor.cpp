@@ -109,3 +109,9 @@ void OpticalTubeProcessor::setStateInformation(const void* data, int size)
     if (xml != nullptr && xml->hasTagName(parameters.state.getType()))
         parameters.replaceState(juce::ValueTree::fromXml(*xml));
 }
+
+// JUCE plugin entry point for this independent VST3 target.
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new OpticalTubeProcessor();
+}
