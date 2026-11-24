@@ -160,7 +160,7 @@ void R2ROpticalTubeCompressorAudioProcessorEditor::drawVuMeter(
     const auto end = juce::MathConstants<float>::pi * 1.85f;
     g.setColour(ink);
     g.drawArc(centre.x - radius, centre.y - radius, radius * 2, radius * 2,
-              start, end, true, 4.0f);
+              start, end, true, juce::PathStrokeType(4.0f));
 
     for (int i = 0; i <= 20; ++i)
     {
@@ -189,8 +189,9 @@ void R2ROpticalTubeCompressorAudioProcessorEditor::drawVuMeter(
         centre.y + std::sin(needleAngle) * (radius - 12.0f), 2.6f);
     g.fillEllipse(centre.x - 6.0f, centre.y - 6.0f, 12.0f, 12.0f);
     g.setFont(juce::Font(juce::FontOptions(25.0f, juce::Font::bold)));
-    g.drawText("VU", face.withY(face.getCentreY() + 12.0f).withHeight(35.0f),
-               juce::Justification::centred);
+    g.drawText("VU", juce::Rectangle<int>(static_cast<int>(face.getX()),
+        static_cast<int>(face.getCentreY() + 12.0f), static_cast<int>(face.getWidth()), 35),
+        juce::Justification::centred);
 }
 
 void R2ROpticalTubeCompressorAudioProcessorEditor::paint(juce::Graphics& g)
