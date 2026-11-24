@@ -6,10 +6,11 @@ class OpticalTubeEditor final : public juce::AudioProcessorEditor
 {
 public:
     explicit OpticalTubeEditor(OpticalTubeProcessor&);
+    ~OpticalTubeEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
 private:
-    class MetalLookAndFeel final : public juce::LookAndFeel_V4
+    class NeonLookAndFeel final : public juce::LookAndFeel_V4
     {
     public:
         void drawRotarySlider(juce::Graphics&, int, int, int, int, float, float, float, juce::Slider&) override;
@@ -24,7 +25,7 @@ private:
         OpticalTubeProcessor& processor;
     };
     OpticalTubeProcessor& processor;
-    MetalLookAndFeel metalLook;
+    NeonLookAndFeel neonLook;
     VUMeter meter;
     juce::Slider peakReduction, outputGain, tubeWarmth;
     juce::ToggleButton limitMode { "LIMIT" }, power { "ON" };
