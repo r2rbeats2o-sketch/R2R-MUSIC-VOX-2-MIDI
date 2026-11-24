@@ -35,3 +35,32 @@ target_link_libraries(R2RMusicVox2Midi PRIVATE
   PUBLIC juce::juce_recommended_config_flags
          juce::juce_recommended_lto_flags
          juce::juce_recommended_warning_flags)
+
+# Separate optical compressor target; VOX 2 MIDI remains unchanged.
+juce_add_plugin(R2ROpticalTubeCompressor
+  COMPANY_NAME "R2R Music"
+  BUNDLE_ID "com.r2rbeats.opticaltubecompressor"
+  PLUGIN_MANUFACTURER_CODE R2RB
+  PLUGIN_CODE R2OC
+  FORMATS VST3 Standalone
+  PRODUCT_NAME "DJ R2R Optical Tube Compressor"
+  IS_SYNTH FALSE
+  NEEDS_MIDI_INPUT FALSE
+  NEEDS_MIDI_OUTPUT FALSE
+  IS_MIDI_EFFECT FALSE
+  EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+  COPY_PLUGIN_AFTER_BUILD FALSE)
+
+juce_generate_juce_header(R2ROpticalTubeCompressor)
+target_sources(R2ROpticalTubeCompressor PRIVATE
+  Source/OpticalTubeCompressorProcessor.cpp
+  Source/OpticalTubeCompressorEditor.cpp)
+target_compile_features(R2ROpticalTubeCompressor PRIVATE cxx_std_17)
+target_compile_definitions(R2ROpticalTubeCompressor PUBLIC
+  JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
+target_link_libraries(R2ROpticalTubeCompressor PRIVATE
+  juce::juce_audio_utils juce::juce_audio_processors
+  juce::juce_dsp juce::juce_gui_extra
+  PUBLIC juce::juce_recommended_config_flags
+         juce::juce_recommended_lto_flags
+         juce::juce_recommended_warning_flags)
